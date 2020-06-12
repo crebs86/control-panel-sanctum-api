@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BaseApp\ProfileRequest;
 use App\Models\Profile;
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
@@ -17,8 +16,12 @@ class ProfileController extends Controller
         );
     }
 
-    public function editMyProfile(Profile $profile, ProfileRequest $request)
+    public function editMyProfile(User $user, ProfileRequest $request)
     {
-        return response()->json((boolean) $profile->find(auth('sanctum')->id())->update($request->all()));
+        $a = $user->find(auth('sanctum')->id())->profile;
+        $b = $a->update($request->all());
+        if ($b) {
+            return response()->json(true);
+        }
     }
 }
