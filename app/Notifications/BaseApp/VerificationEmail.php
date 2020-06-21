@@ -4,11 +4,10 @@ namespace App\Notifications\BaseApp;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SystemNotification extends Notification implements ShouldQueue
+class VerificationEmail extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -35,9 +34,7 @@ class SystemNotification extends Notification implements ShouldQueue
     public function via($notifiable)
     {
         return [
-            //'mail',
-            'database',
-            'broadcast',
+            'mail',
         ];
     }
 
@@ -50,31 +47,10 @@ class SystemNotification extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Nova Notificação')
-            ->line('Será criado uma lógica para verificação de envio de e-mail.')
-            ->action('Notification Action', url('/'))
+            ->subject('Email Address Verification')
+            ->line('Dear ' . $this->notification->user . ',')
+            ->line('Before you get started, please verify your email address below')
+            ->action('Check Email Address', $this->notification->url)
             ->line('Thank you for using our application!');
-    }
-
-    /**
-     * @param $notifiable
-     * @return array
-     */
-    public function toDatabase($notifiable)
-    {
-        return [
-            'notification' => $this->notification
-        ];
-    }
-
-    /**
-     * @param $notifiable
-     * @return BroadcastMessage
-     */
-    public function toBroadcast($notifiable)
-    {
-        return new BroadcastMessage([
-            'notification' => $this->notification
-        ]);
     }
 }

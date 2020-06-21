@@ -17,33 +17,76 @@ class ACLController extends Controller
     use AclCore;
 
     /**
+     * Get all roles
+     *
      * @param Role $role
      * @return \Illuminate\Http\JsonResponse
      */
     public function roles(Role $role)
     {
-        $this->can('acl_view', 'acl_manager');
-        return response()->json($role->get());
+        $this->can('acl_view', 'acl_manager', 'super-admin');
+        return response()->json($role->where('name', '<>', 'super-admin')->where('name', '<>', 'admin')->get());
     }
 
     /**
+     * Get Admin roles
+     *
+     * @param Role $role
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function adminRoles(Role $role)
+    {
+        if ($this->isSuperAdmin()) {
+            return response()->json($role
+                ->where('name', 'super-admin')
+                ->orWhere('name', 'admin')
+                ->get());
+        } else {
+            return response()->json();
+        }
+    }
+
+    /**
+     * Get permissions
+     *
      * @param Permission $permission
      * @return \Illuminate\Http\JsonResponse
      */
     public function permissions(Permission $permission)
     {
-        $this->can('acl_view', 'acl_manager');
-        return response()->json($permission->get());
+        $this->can('acl_view', 'acl_manager', 'super-admin');
+        return response()->json($permission
+            ->where('name', '<>', 'acl_manager')
+            ->get());
     }
 
     /**
+     * Get Admin permissions
+     *
+     * @param Permission $permission
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function adminPermissions(Permission $permission)
+    {
+        if ($this->isSuperAdmin()) {
+            return response()->json($permission
+                ->where('name', 'acl_manager')
+                ->get());
+        } else {
+            return response()->json();
+        }
+    }
+
+    /**
+     * Create a new role
+     *
      * @param RolesRequest $request
      * @param Role $role
      * @return \Illuminate\Http\JsonResponse
      */
     public function newRole(RolesRequest $request, Role $role)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         $a = $role->create($request->all());
         return response()->json([
             'role' => $a,
@@ -52,13 +95,15 @@ class ACLController extends Controller
     }
 
     /**
+     * Create a new permission
+     *
      * @param PermissionsRequest $request
      * @param Permission $permission
      * @return \Illuminate\Http\JsonResponse
      */
     public function newPermission(PermissionsRequest $request, Permission $permission)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         $a = $permission->create($request->all());
         return response()->json([
             'role' => $a,
@@ -73,7 +118,7 @@ class ACLController extends Controller
      */
     public function permissionsRoles(Role $role)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         return response()->json($role->all('id', 'name', 'label')->load('permissions'));
     }
 
@@ -84,7 +129,7 @@ class ACLController extends Controller
      */
     public function saveACL(Request $request, Role $role)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         $a = $role->select('id', 'name', 'label')->where('id', $request->id)->get()->load('permissions')->toArray();
         $b = $this->valueIds($a[0]['permissions']);
         $this->savePermissionsOnRole(array_diff($request->ids, $b), array_diff($b, $request->ids), (int)$request->id);
@@ -100,7 +145,7 @@ class ACLController extends Controller
      */
     private function savePermissionsOnRole(array $add, array $remove, int $role)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         foreach ($add as $value) {
             $a = PermissionRole::where('role_id', $role)->where('permission_id', $value)->get()->toArray();
             if (count($a) === 0) {
@@ -122,7 +167,7 @@ class ACLController extends Controller
      */
     public function rolePermissions(Request $request, Role $role)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         $a = $role->select('id', 'name', 'label')->where('id', $request->id)->get()->load('permissions')->toArray();
         $b = $this->valueIds($a[0]['permissions']);
         return response()->json([
@@ -138,7 +183,7 @@ class ACLController extends Controller
      */
     public function saveRoleUser(Request $request, RoleUser $roleUser)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         $a = $roleUser->select('role_id')->where('user_id', $request->id)->get()->toArray();
         $b = $this->valueIds($a, 'role_id');
         $this->saveRoleOnUser(array_diff($request->ids, $b), array_diff($b, $request->ids), (int)$request->id);
@@ -154,14 +199,16 @@ class ACLController extends Controller
      */
     private function saveRoleOnUser(array $add, array $remove, int $user)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         foreach ($add as $value) {
-            $a = RoleUser::where('user_id', $user)->where('role_id', $value)->get()->toArray();
-            if (count($a) === 0) {
-                $b = new RoleUser();
-                $b->user_id = $user;
-                $b->role_id = $value;
-                $b->save();
+            if (($value === 1 || $value === 2 && $this->isSuperAdmin()) || $value !== 1 && $value !== 2) {
+                $a = RoleUser::where('user_id', $user)->where('role_id', $value)->get()->toArray();
+                if (count($a) === 0) {
+                    $b = new RoleUser();
+                    $b->user_id = $user;
+                    $b->role_id = $value;
+                    $b->save();
+                }
             }
         }
         foreach ($remove as $value) {
@@ -176,12 +223,42 @@ class ACLController extends Controller
      */
     public function loadRoleUser(Request $request, RoleUser $roleUser)
     {
-        $this->can('acl_manager');
+        $this->can('acl_manager', 'super-admin');
         $a = $roleUser->select('role_id')->where('user_id', $request->id)->get()->toArray();
         $b = [];
         if (count($a) > 0) {
             $b = $this->valueIds($a, 'role_id');
         }
         return response()->json($b);
+    }
+
+    public function editAdminRoles(Request $request, RoleUser $roleUser)
+    {
+        $this->can('super-admin');
+        $a = $roleUser->select('role_id')->where('user_id', $request->id)->get()->toArray();
+        $b = $this->valueIds($a, 'role_id');
+        $this->saveRoleOnUser(array_diff($request->ids, $b), array_diff($b, $request->ids), (int)$request->id);
+        return response()->json([
+            'message' => 'Data updated successfully'
+        ]);
+    }
+
+    private function editAdminPermissionsOnRole(array $add, array $remove, int $role)
+    {
+        $this->can('super-admin');
+        foreach ($add as $value) {
+            if (($role === 1 && $role === 2 && $this->isSuperAdmin()) || $role !== 1 && $role !== 2) {
+                $a = PermissionRole::where('role_id', $role)->where('permission_id', $value)->get()->toArray();
+                if (count($a) === 0) {
+                    $b = new PermissionRole();
+                    $b->role_id = $role;
+                    $b->permission_id = $value;
+                    $b->save();
+                }
+            }
+        }
+        foreach ($remove as $value) {
+            PermissionRole::where('role_id', $role)->where('permission_id', $value)->delete();
+        }
     }
 }

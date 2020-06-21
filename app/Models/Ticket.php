@@ -7,15 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ticket extends Model
 {
-    protected function serializeDate(DateTimeInterface $date)
-    {
-        return $date->format('Y-m-d H:i:s');
-    }
-
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id')->select('id', 'name');
-        //return $this->belongsTo(User::class)->select('id', 'name');
     }
 
     public function assigned_user()
@@ -26,5 +20,10 @@ class Ticket extends Model
     public function department()
     {
         return $this->belongsTo(TicketTypes::class, 'ticket_type_id', 'id')->select('id', 'desc');
+    }
+
+    protected function serializeDate(DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
     }
 }

@@ -38,6 +38,8 @@ trait AclCore
      */
     private $messageError = 'You don\'t have permission for this!';
 
+    private $dataData = null;
+
     /**
      * AclCore constructor.
      * @param User $user

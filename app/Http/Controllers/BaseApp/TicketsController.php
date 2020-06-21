@@ -98,7 +98,7 @@ class TicketsController extends Controller
                 })
                     ->where('user_id', '<>', auth('sanctum')->id())
                     ->join('users', 'users.id', '=', 'tickets.user_id')
-                    ->select('tickets.id', 'title', 'content', 'closed_by', 'assigned', 'tickets.created_at', 'tickets.updated_at', 'users.name', \DB::raw('SUBSTRING(content, 1, 44) as content'))
+                    ->select('tickets.id', 'title', 'content', 'closed_by', 'assigned', 'priority', 'tickets.created_at', 'tickets.updated_at', 'users.name', \DB::raw('SUBSTRING(content, 1, 44) as content'))
                     ->orderBy('updated_at', 'desc')
                     ->get()
                     ->load('assigned_user')

@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateAppConfigsTable extends Migration
 {
@@ -15,7 +15,7 @@ class CreateAppConfigsTable extends Migration
     {
         Schema::create('app_configs', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('config', 55);
+            $table->string('config', 55)->unique();
             $table->text('content');
         });
     }

@@ -226,16 +226,16 @@ class Publish extends Seeder
         );
         DB::table('role_user')->insert($role);
 
-        $setting = array([
-            'name' => 'default',
-            'label' => 'Default Settings',
-            'validate_mail' => true,
-            'ac_account' => true,
-            'protect_register_form' => true,
-            'protect_register_form_admin' => true,
-            'menu_show_users' => false,
-            'active' => true
-        ]);
-        DB::table('settings')->insert($setting);/**/
+        $app_configs = array(
+            [
+                "config" => "app_info",
+                "content" => '{"app_name":"Laravel Sanctum SPA", "app_lang":"pt_BR"}'
+            ],
+            [
+                "config" => "app_config",
+                "content" => '{"email_verified":false, "app_version":"default"}'
+            ]
+        );
+        DB::table('app_configs')->insert($app_configs);/**/
     }
 }

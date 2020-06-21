@@ -15,6 +15,12 @@ class CreateUserEditionsTable extends Migration
     {
         Schema::create('user_editions', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->unsignedBigInteger('editor');
+            $table->foreign('editor')->references('id')->on('users');
+            $table->text('old');
+            $table->text('new');
             $table->timestamps();
         });
     }

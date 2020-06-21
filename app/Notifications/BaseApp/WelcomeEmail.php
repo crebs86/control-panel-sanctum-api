@@ -7,22 +7,22 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class WellcomeEmail extends Notification implements ShouldQueue
+class WelcomeEmail extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    private $notification;
+    private $user_name;
 
     /**
      * SystemNotification constructor.
      * Create a new notification instance.
      *
-     * @param $notification
+     * @param $name
      * @return void
      */
-    public function __construct($notification)
+    public function __construct($name)
     {
-        $this->notification = $notification;
+        $this->user_name = $name;
     }
 
     /**
@@ -47,10 +47,10 @@ class WellcomeEmail extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Welcome to')
-            ->line('Dear ' . $this->notification->user . ',')
-            ->line('Before you get started, please verify your email address below')
-            ->action('Check Email Address', $this->notification->url)
+            ->subject('Welcome to ' . env('APP_NAME'))
+            ->line('Dear ' . $this->user_name . ',')
+            ->line('Welcome to ' . env('APP_NAME') . '. Use the bellow button to access our application.')
+            ->action('Go To ' . env('APP_NAME'), env('APP_URL'))
             ->line('Thank you for using our application!');
     }
 }

@@ -72,9 +72,9 @@ class UsersGroupsController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function usersGroupsWithName(Group $group, Request $request)
+    public function usersGroupsWithName(Request $request)
     {
-        return response()->json($group->find($request->group)->load('users_group_with_name'));
+        return response()->json(Group::withTrashed()->find($request->group)->load('users_group_with_name')->toArray());
     }
 
     /**

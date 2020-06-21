@@ -18,13 +18,21 @@ use Illuminate\Support\Facades\Route;
  ----------------------------*/
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 Route::post('/login', 'BaseApp\LoginController@login');
-Route::post('getAppConfigs', 'BaseApp\AppConfigController@appInfo');
+Route::post('getAppConfig', 'BaseApp\AppConfigController@getAppConfig');
 
 Route::middleware('auth:sanctum')->get('/user', 'BaseApp\UserController@user');
-Route::middleware('auth:sanctum')->post('/register', 'BaseApp\RegisterController@register');
 Route::middleware('auth:sanctum')->post('/getToken', 'BaseApp\UserController@getToken');
 Route::middleware('auth:sanctum')->get('/usersList', 'BaseApp\UserController@list');
 Route::middleware('auth:sanctum')->get('/usersListBasic', 'BaseApp\UserController@usersListBasic');
+Route::middleware('auth:sanctum')->put('/user/edit', 'BaseApp\UserController@edit');
+Route::middleware('auth:sanctum')->get('/user/sendVerificationEmail/{user}', 'BaseApp\UserController@sendVerificationEmail');
+Route::middleware('auth:sanctum')->put('/user/markEmailAsConfirmed', 'BaseApp\UserController@markEmailAsConfirmed');
+Route::middleware('auth:sanctum')->get('/user/sendWelcomeEmail/{user}', 'BaseApp\UserController@sendWelcomeEmail');
+Route::middleware('auth:sanctum')->post('/user/changePassword', 'BaseApp\UserController@changePassword');
+Route::middleware('auth:sanctum')->post('/user/changeMyPassword', 'BaseApp\UserController@changeMyPassword');
+Route::get('/user/verificationEmail/{check}', 'BaseApp\UserController@verificationEmail');
+
+Route::middleware('auth:sanctum')->post('/register', 'BaseApp\RegisterController@register');
 Route::middleware('auth:sanctum')->post('/logout', 'BaseApp\LoginController@logout');
 
 Route::middleware('auth:sanctum')->post('/alert', 'BaseApp\NotificationController@newSystemAlert');
@@ -66,7 +74,11 @@ Route::middleware('auth:sanctum')->post('/editUsersOnGroups', 'BaseApp\UsersGrou
 
 //Controller ACL
 Route::middleware('auth:sanctum')->get('/ACL/roles', 'BaseApp\ACLController@roles');
+Route::middleware('auth:sanctum')->get('/ACL/adminRoles', 'BaseApp\ACLController@adminRoles');
+Route::middleware('auth:sanctum')->post('/ACL/editAdminRoles', 'BaseApp\ACLController@editAdminRoles');
 Route::middleware('auth:sanctum')->get('/ACL/permissions', 'BaseApp\ACLController@permissions');
+Route::middleware('auth:sanctum')->get('/ACL/adminPermissions', 'BaseApp\ACLController@adminPermissions');
+Route::middleware('auth:sanctum')->post('/ACL/editAdminPermissionsOnRole', 'BaseApp\ACLController@editAdminPermissionsOnRole');
 Route::middleware('auth:sanctum')->post('/ACL/permissions/new', 'BaseApp\ACLController@newPermission');
 Route::middleware('auth:sanctum')->post('/ACL/roles/new', 'BaseApp\ACLController@newRole');
 Route::middleware('auth:sanctum')->get('/ACL/permissionsRoles', 'BaseApp\ACLController@permissionsRoles');
@@ -77,7 +89,10 @@ Route::middleware('auth:sanctum')->get('/ACL/loadRoleUser/{id}', 'BaseApp\ACLCon
 
 //Controller ProfileRequest
 Route::middleware('auth:sanctum')->get('/profile', 'BaseApp\ProfileController@myProfile');
-Route::middleware('auth:sanctum')->post('/profile/{id}/edit', 'BaseApp\ProfileController@editMyProfile');
+Route::middleware('auth:sanctum')->post('/profile/new', 'BaseApp\ProfileController@create');
+Route::middleware('auth:sanctum')->post('/profile/{id}/editMyProfile', 'BaseApp\ProfileController@editMyProfile');
+Route::middleware('auth:sanctum')->put('/profile/{id}/editProfile', 'BaseApp\ProfileController@editProfile');
+Route::middleware('auth:sanctum')->get('/profile/{user_id}/get', 'BaseApp\ProfileController@getProfile');
 
 //Controller Abilities
 Route::middleware('auth:sanctum')->get('/profile/abilities', 'BaseApp\AbilityController@myAbilities');
